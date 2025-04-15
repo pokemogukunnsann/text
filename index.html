@@ -39,6 +39,9 @@
 
   <div id="toolbar">
     <button onclick="createNewFolder()">📁 フォルダ作成</button>
+    <button onclick="createNewFile()">📄 ファイル作成</button>
+    <button onclick="deleteSelectedFile()">🗑️ ファイル削除</button>
+    <button onclick="deleteSelectedFolder()">📂 フォルダ削除</button>
     <button onclick="saveCurrentFile()">💾 保存</button>
   </div>
 
@@ -105,7 +108,6 @@
     function createNewFolder() {
       const folderName = prompt("フォルダ名を入力してください:");
       if (!folderName) return;
-
       const folderPath = folderName.endsWith('/') ? folderName : folderName + '/';
 
       if (!fileData[folderPath]) {
@@ -113,8 +115,56 @@
         saveFileData();
         refreshTree();
       } else {
-        alert("同じ名前のフォルダがすでに存在します。");
+        alert("すでに存在します。");
       }
+    }
+
+    function createNewFile() {
+      const fileName = prompt("新しいファイル名を入力してください（例: test.js）:");
+      if (!fileName || fileName.endsWith('/')) {
+        alert("正しいファイル名を入力してください");
+        return;
+      }
+      if (fileData[fileName] !== undefined) {
+        alert("すでにそのファイルは存在します！");
+        return;
+      }
+      fileData[fileName] = '';
+      saveFileData();
+      refreshTree();
+    }
+
+    function deleteSelectedFile() {
+      const selected = $('#tree').jstree(true).get_selected()[0];
+      if (!selected) return;
+      if (fileData[selected] === null) {
+        alert("これはフォルダです！");
+        return;
+      }
+      if (confirm(`${selected} を削除しますか？`)) {
+        delete fileData[selected];
+        saveFileData();
+        refreshTree();
+        editor.setValue('');
+      }
+    }
+
+    function deleteSelectedFolder() {
+      const selected = $('#tree').jstree(true).get_selected()[0];
+      if (!selected) return;
+      if (fileData[selected] !== null) {
+        alert("これはフォルダではありません！");
+        return;
+      }
+      if (!confirm(`${selected} を中のファイルごと削除しますか？`)) return;
+      Object.keys(fileData).forEach(key => {
+        if (key === selected || key.startsWith(selected)) {
+          delete fileData[key];
+        }
+      });
+      saveFileData();
+      refreshTree();
+      editor.setValue('');
     }
 
     function saveCurrentFile() {
@@ -130,10 +180,7 @@
 
     $(function () {
       loadFileData();
-
-      $('#tree').jstree({
-        core: { data: generateTree(fileData) }
-      });
+      $('#tree').jstree({ core: { data: generateTree(fileData) } });
 
       require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs' }});
       require(['vs/editor/editor.main'], function () {
