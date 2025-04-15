@@ -2,25 +2,26 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Mini CodeSpace with Tree</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jstree/dist/themes/default/style.min.css" />
+  <title>Mini CodeSpace</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jstree/dist/themes/default/style.min.css">
   <style>
-    body, html {
+    html, body {
       margin: 0;
       padding: 0;
       height: 100%;
+      width: 100%;
       display: flex;
-      font-family: sans-serif;
     }
     #tree {
-      width: 200px;
-      height: 100%;
-      overflow: auto;
-      border-right: 1px solid #333;
+      width: 250px;
+      height: 100vh;
+      overflow-y: auto;
+      border-right: 1px solid #ccc;
     }
     #container {
       flex-grow: 1;
-      height: 100%;
+      height: 100vh;
+      min-width: 0; /* ← 必須！ */
     }
   </style>
 </head>
@@ -28,22 +29,17 @@
   <div id="tree"></div>
   <div id="container"></div>
 
-  <!-- jsTree & jQuery -->
+  <!-- 必要なスクリプト -->
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jstree/dist/jstree.min.js"></script>
-
-  <!-- Monaco Editor -->
+  <script src="https://cdn.jsdelivr.net/npm/jstree@3.3.12/dist/jstree.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/loader.js"></script>
 
   <script>
-    // 初期ファイルデータ（今はダミー）
     const fileData = {
-      'main.js': `console.log("Main JS file");`,
-      'utils/helper.js': `export function help() { console.log("Help!"); }`,
-      'style.css': `body { background: #111; color: white; }`
+      "main.js": `console.log("Hello from main.js");`,
+      "folder/helper.js": `export function help() { console.log("Help!"); }`
     };
 
-    // jsTree用のツリーデータに変換
     function generateTree(data) {
       const tree = [];
       Object.keys(data).forEach(path => {
@@ -66,12 +62,9 @@
       return tree;
     }
 
-    // ツリー表示
     $(function () {
       $('#tree').jstree({
-        core: {
-          data: generateTree(fileData)
-        }
+        core: { data: generateTree(fileData) }
       });
 
       let editor;
@@ -79,24 +72,26 @@
       require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs' }});
       require(['vs/editor/editor.main'], function () {
         editor = monaco.editor.create(document.getElementById('container'), {
-          value: '', // 初期状態の空のエディタ
+          value: '',
           language: 'javascript',
           theme: 'vs-dark'
         });
 
-        // ファイルを選択したとき
+        editor.layout(); // ← ここが重要！
+
         $('#tree').on("select_node.jstree", function (e, data) {
           const path = data.node.id;
           if (fileData[path]) {
-            // Monacoエディタの内容を更新
             editor.setValue(fileData[path]);
             editor.updateOptions({ readOnly: false });
-            editor.focus(); // フォーカスを与えて編集可能にする
+            editor.focus();
           } else {
             editor.setValue('// フォルダが選ばれました');
             editor.updateOptions({ readOnly: true });
           }
         });
+
+        window.addEventListener('resize', () => editor.layout());
       });
     });
   </script>
