@@ -1,29 +1,46 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import datetime
+import subprocess
+import os
 
 app = Flask(__name__)
-
 CORS(app, origins='*', methods=['GET', 'POST'])
 
-@app.route('/upload', methods=['POST'])
-def upload():
-    data = request.json
-    with open(f"backup_{datetime.datetime.now().isoformat()}.txt", "w", encoding="utf-8") as f:
-        f.write(data.get("content", ""))
-    return {"status": "success"}
+# 仮想のカレントディレクトリ（グローバル）
+current_path = os.getcwd()
 
 @app.route("/run", methods=["POST"])
 def run_command():
+    global current_path
     data = request.json
     cmd = data.get("command")
 
     try:
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        if cmd.startswith("cd "):
+            # パスを抽出して現在のパスを更新
+            new_path = os.path.abspath(os.path.join(current_path, cmd[3:].strip()))
+            if os.path.isdir(new_path):
+                current_path = new_path
+                return jsonify({
+                    "stdout": f"現在のディレクトリ: {current_path}\n",
+                    "stderr": "",
+                    "code": 0
+                })
+            else:
+                return jsonify({
+                    "stdout": "",
+                    "stderr": "指定されたディレクトリが存在しません。",
+                    "code": 1
+                })
+
+        # 通常のコマンドは current_path 上で実行
+        result = subprocess.run(cmd, shell=True, cwd=current_path, capture_output=True, text=True)
         return jsonify({
             "stdout": result.stdout,
             "stderr": result.stderr,
             "code": result.returncode
         })
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
