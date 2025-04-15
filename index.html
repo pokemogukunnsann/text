@@ -11,22 +11,28 @@
       padding: 0;
     }
   </style>
-  <!-- Monaco EditorのCDN -->
   <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/loader.js"></script>
 </head>
 <body>
   <div id="container"></div>
 
   <script>
+    const STORAGE_KEY = 'minicodespace-code';
+
     require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs' }});
     require(['vs/editor/editor.main'], function () {
-      monaco.editor.create(document.getElementById('container'), {
-        value: [
-          '// ここにコードを書いてね',
-          'console.log("Hello, Mini CodeSpace!");'
-        ].join('\n'),
+      const savedCode = localStorage.getItem(STORAGE_KEY) || `// 自動保存対応だよ！\nconsole.log("Hello!");`;
+
+      const editor = monaco.editor.create(document.getElementById('container'), {
+        value: savedCode,
         language: 'javascript',
         theme: 'vs-dark'
+      });
+
+      // 入力があるたびに保存
+      editor.onDidChangeModelContent(() => {
+        const currentCode = editor.getValue();
+        localStorage.setItem(STORAGE_KEY, currentCode);
       });
     });
   </script>
