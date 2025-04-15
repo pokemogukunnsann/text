@@ -44,3 +44,23 @@ def run_command():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/list", methods=["POST"])
+def list_directory():
+    global current_path
+    try:
+        files = os.listdir(current_path)
+        entries = []
+        for name in files:
+            full_path = os.path.join(current_path, name)
+            entries.append({
+                "name": name,
+                "type": "folder" if os.path.isdir(full_path) else "file"
+            })
+        return jsonify({
+            "path": current_path,
+            "entries": entries
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
