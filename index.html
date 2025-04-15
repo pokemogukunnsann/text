@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Mini CodeSpace with Tree</title>
+  <title>ツリー付きミニコードスペース</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jstree/dist/themes/default/style.min.css" />
   <style>
     body, html {
@@ -89,6 +89,7 @@
           if (fileData[path]) {
             editor.setValue(fileData[path]);
             editor.updateOptions({ readOnly: false });
+            editor.focus(); // エディタにフォーカスさせて編集できる状態に！
           } else {
             editor.setValue('// フォルダが選ばれました');
             editor.updateOptions({ readOnly: true });
