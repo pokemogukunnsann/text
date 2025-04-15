@@ -208,6 +208,40 @@
       });
     });
   </script>
+<div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
+  <h3>コマンド実行</h3>
+  <input type="text" id="cmdInput" placeholder="コマンドを入力..." style="width: 100%;">
+  <pre id="cmdOutput" style="background: #000; color: #0f0; padding: 10px; height: 200px; overflow-y: auto;"></pre>
+</div>
+
+<script>
+  const cmdInput = document.getElementById("cmdInput");
+  const cmdOutput = document.getElementById("cmdOutput");
+
+  cmdInput.addEventListener("keydown", async function (e) {
+    if (e.key === "Enter") {
+      const command = cmdInput.value.trim();
+      cmdOutput.textContent += "> " + command + "\n";
+      cmdInput.value = "";
+
+      const res = await fetch("/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command })
+      });
+
+      const data = await res.json();
+      if (data.error) {
+        cmdOutput.textContent += `エラー: ${data.error}\n`;
+      } else {
+        cmdOutput.textContent += data.stdout || "";
+        cmdOutput.textContent += data.stderr || "";
+      }
+
+      cmdOutput.scrollTop = cmdOutput.scrollHeight;
+    }
+  });
+</script>
 
 </body>
 </html>
