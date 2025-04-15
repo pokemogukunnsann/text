@@ -4,6 +4,8 @@ import datetime
 
 app = Flask(__name__)
 
+CORS(app, origins='*', methods=['GET', 'POST'])
+
 @app.route('/upload', methods=['POST'])
 def upload():
     data = request.json
