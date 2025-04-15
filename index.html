@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>スマートエディタ</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    textarea {
+      width: 100%;
+      height: 100vh;
+      border: none;
+      padding: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <textarea id="editor" placeholder="ここに書いてね..."></textarea>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const SAVE_KEY = 'offlineText';
+
+    // 起動時にローカル保存読み込み
+    editor.value = localStorage.getItem(SAVE_KEY) || '';
+
+    // 入力時に保存
+    editor.addEventListener('input', () => {
+      localStorage.setItem(SAVE_KEY, editor.value);
+    });
+
+    // オンラインになったら自動アップロード
+    window.addEventListener('online', () => {
+      const text = localStorage.getItem(SAVE_KEY);
+      if (text) {
+        fetch('https://your-server.com/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: text })
+        }).then(res => {
+          if (res.ok) {
+            alert('オンラインになったので自動保存しました！');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
