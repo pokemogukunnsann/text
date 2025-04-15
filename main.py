@@ -1,4 +1,5 @@
 from flask import Flask, request
+from flask_cors import CORS
 import datetime
 
 app = Flask(__name__)
