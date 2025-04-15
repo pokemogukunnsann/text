@@ -224,7 +224,7 @@
       cmdOutput.textContent += "> " + command + "\n";
       cmdInput.value = "";
 
-      const res = await fetch("/run", {
+      const res = await fetch("https://python-text.onrender.com/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ command })
