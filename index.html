@@ -11,34 +11,69 @@
       height: 100%;
       width: 100%;
       display: flex;
+      flex-direction: column;
+    }
+    #toolbar {
+      padding: 8px;
+      background: #eee;
+      border-bottom: 1px solid #ccc;
+    }
+    #main {
+      flex-grow: 1;
+      display: flex;
+      height: calc(100vh - 40px);
     }
     #tree {
       width: 250px;
-      height: 100vh;
       overflow-y: auto;
       border-right: 1px solid #ccc;
     }
     #container {
       flex-grow: 1;
-      height: 100vh;
-      min-width: 0; /* ← 必須！ */
+      height: 100%;
+      min-width: 0;
     }
   </style>
 </head>
 <body>
-  <div id="tree"></div>
-  <div id="container"></div>
 
-  <!-- 必要なスクリプト -->
+  <div id="toolbar">
+    <button onclick="createNewFolder()">📁 フォルダ作成</button>
+    <button onclick="saveCurrentFile()">💾 保存</button>
+  </div>
+
+  <div id="main">
+    <div id="tree"></div>
+    <div id="container"></div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jstree@3.3.12/dist/jstree.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/loader.js"></script>
 
   <script>
-    const fileData = {
-      "main.js": `console.log("Hello from main.js");`,
-      "folder/helper.js": `export function help() { console.log("Help!"); }`
-    };
+    const STORAGE_KEY = 'myCodeSpaceFileData';
+    let fileData = {};
+
+    function loadFileData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          fileData = JSON.parse(saved);
+        } catch (e) {
+          fileData = {};
+        }
+      } else {
+        fileData = {
+          "main.js": `console.log("Hello from main.js");`,
+          "folder/helper.js": `export function help() { console.log("Help!"); }`
+        };
+      }
+    }
+
+    function saveFileData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fileData));
+    }
 
     function generateTree(data) {
       const tree = [];
@@ -52,7 +87,7 @@
               id: parts.slice(0, i + 1).join('/'),
               text: part,
               children: [],
-              icon: i === parts.length - 1 ? "jstree-file" : undefined
+              icon: (i === parts.length - 1 && !path.endsWith('/')) ? "jstree-file" : undefined
             };
             current.push(node);
           }
@@ -62,12 +97,43 @@
       return tree;
     }
 
+    function refreshTree() {
+      $('#tree').jstree(true).settings.core.data = generateTree(fileData);
+      $('#tree').jstree(true).refresh();
+    }
+
+    function createNewFolder() {
+      const folderName = prompt("フォルダ名を入力してください:");
+      if (!folderName) return;
+
+      const folderPath = folderName.endsWith('/') ? folderName : folderName + '/';
+
+      if (!fileData[folderPath]) {
+        fileData[folderPath] = null;
+        saveFileData();
+        refreshTree();
+      } else {
+        alert("同じ名前のフォルダがすでに存在します。");
+      }
+    }
+
+    function saveCurrentFile() {
+      const selected = $('#tree').jstree(true).get_selected()[0];
+      if (selected && fileData[selected] !== null) {
+        fileData[selected] = editor.getValue();
+        saveFileData();
+        alert("保存しました！");
+      }
+    }
+
+    let editor;
+
     $(function () {
+      loadFileData();
+
       $('#tree').jstree({
         core: { data: generateTree(fileData) }
       });
-
-      let editor;
 
       require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs' }});
       require(['vs/editor/editor.main'], function () {
@@ -77,11 +143,11 @@
           theme: 'vs-dark'
         });
 
-        editor.layout(); // ← ここが重要！
+        editor.layout();
 
         $('#tree').on("select_node.jstree", function (e, data) {
           const path = data.node.id;
-          if (fileData[path]) {
+          if (fileData[path] !== null) {
             editor.setValue(fileData[path]);
             editor.updateOptions({ readOnly: false });
             editor.focus();
@@ -95,5 +161,6 @@
       });
     });
   </script>
+
 </body>
 </html>
