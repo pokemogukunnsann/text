@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: python-practice
+    env: python
+    region: Oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn main:app
+"
+    envVars:
+    - key: PYTHON_VERSION
+      value: 3.10.9
