@@ -2,37 +2,98 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Mini CodeSpace Editor</title>
+  <title>Mini CodeSpace with Tree</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jstree/dist/themes/default/style.min.css" />
   <style>
-    html, body, #container {
-      width: 100%;
-      height: 100%;
+    body, html {
       margin: 0;
       padding: 0;
+      height: 100%;
+      display: flex;
+      font-family: sans-serif;
+    }
+    #tree {
+      width: 200px;
+      height: 100%;
+      overflow: auto;
+      border-right: 1px solid #333;
+    }
+    #container {
+      flex-grow: 1;
+      height: 100%;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/loader.js"></script>
 </head>
 <body>
+  <div id="tree"></div>
   <div id="container"></div>
 
+  <!-- jsTree & jQuery -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jstree/dist/jstree.min.js"></script>
+
+  <!-- Monaco Editor -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/loader.js"></script>
+
   <script>
-    const STORAGE_KEY = 'minicodespace-code';
+    // 初期ファイルデータ（今はダミー）
+    const fileData = {
+      'main.js': `console.log("Main JS file");`,
+      'utils/helper.js': `export function help() { console.log("Help!"); }`,
+      'style.css': `body { background: #111; color: white; }`
+    };
 
-    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs' }});
-    require(['vs/editor/editor.main'], function () {
-      const savedCode = localStorage.getItem(STORAGE_KEY) || `// 自動保存対応だよ！\nconsole.log("Hello!");`;
+    // jsTree用のツリーデータに変換
+    function generateTree(data) {
+      const tree = [];
+      Object.keys(data).forEach(path => {
+        const parts = path.split('/');
+        let current = tree;
+        parts.forEach((part, i) => {
+          let node = current.find(n => n.text === part);
+          if (!node) {
+            node = {
+              id: parts.slice(0, i + 1).join('/'),
+              text: part,
+              children: [],
+              icon: i === parts.length - 1 ? "jstree-file" : undefined
+            };
+            current.push(node);
+          }
+          current = node.children;
+        });
+      });
+      return tree;
+    }
 
-      const editor = monaco.editor.create(document.getElementById('container'), {
-        value: savedCode,
-        language: 'javascript',
-        theme: 'vs-dark'
+    // ツリー表示
+    $(function () {
+      $('#tree').jstree({
+        core: {
+          data: generateTree(fileData)
+        }
       });
 
-      // 入力があるたびに保存
-      editor.onDidChangeModelContent(() => {
-        const currentCode = editor.getValue();
-        localStorage.setItem(STORAGE_KEY, currentCode);
+      let editor;
+
+      require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs' }});
+      require(['vs/editor/editor.main'], function () {
+        editor = monaco.editor.create(document.getElementById('container'), {
+          value: '',
+          language: 'javascript',
+          theme: 'vs-dark'
+        });
+
+        $('#tree').on("select_node.jstree", function (e, data) {
+          const path = data.node.id;
+          if (fileData[path]) {
+            editor.setValue(fileData[path]);
+            editor.updateOptions({ readOnly: false });
+          } else {
+            editor.setValue('// フォルダが選ばれました');
+            editor.updateOptions({ readOnly: true });
+          }
+        });
       });
     });
   </script>
