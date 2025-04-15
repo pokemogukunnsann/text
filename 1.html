@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>mini CodeSpace</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jstree/dist/themes/default/style.min.css">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    #toolbar {
+      padding: 8px;
+      background: #eee;
+      border-bottom: 1px solid #ccc;
+    }
+    #main {
+      flex-grow: 1;
+      display: flex;
+      height: calc(100vh - 40px);
+    }
+    #tree {
+      width: 250px;
+      overflow-y: auto;
+      border-right: 1px solid #ccc;
+    }
+    #container {
+      flex-grow: 1;
+      height: 100%;
+      min-width: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="toolbar">
+    <button onclick="createNewFolder()">📁 フォルダ作成</button>
+    <button onclick="createNewFile()">📄 ファイル作成</button>
+    <button onclick="deleteSelectedFile()">🗑️ ファイル削除</button>
+    <button onclick="deleteSelectedFolder()">📂 フォルダ削除</button>
+    <button onclick="saveCurrentFile()">💾 保存</button>
+  </div>
+  <div id="main">
+    <div style="display: flex;">
+      <div id="fileTree" style="width: 200px; border-right: 1px solid #ccc; padding: 10px; overflow-y: auto; height: 400px;">
+        <strong>ファイル一覧</strong>
+        <ul id="fileList" style="list-style-type: none; padding-left: 10px;"></ul>
+        <div id="tree"></div>
+      </div>
+      <div id="container"></div>
+    </div>
+    <div style="flex: 1; padding: 10px;">
+      <h3>現在のディレクトリ: <span id="currentDir">（未取得）</span></h3>
+      <input type="text" id="cmdInput" placeholder="コマンドを入力..." style="width: 100%;">
+      <pre id="cmdOutput" style="background: #000; color: #0f0; padding: 10px; height: 200px; overflow-y: auto;"></pre>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jstree@3.3.12/dist/jstree.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs/loader.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
