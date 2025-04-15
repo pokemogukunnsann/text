@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ツリー付きミニコードスペース</title>
+  <title>Mini CodeSpace with Tree</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jstree/dist/themes/default/style.min.css" />
   <style>
     body, html {
@@ -79,17 +79,19 @@
       require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0/min/vs' }});
       require(['vs/editor/editor.main'], function () {
         editor = monaco.editor.create(document.getElementById('container'), {
-          value: '',
+          value: '', // 初期状態の空のエディタ
           language: 'javascript',
           theme: 'vs-dark'
         });
 
+        // ファイルを選択したとき
         $('#tree').on("select_node.jstree", function (e, data) {
           const path = data.node.id;
           if (fileData[path]) {
+            // Monacoエディタの内容を更新
             editor.setValue(fileData[path]);
             editor.updateOptions({ readOnly: false });
-            editor.focus(); // エディタにフォーカスさせて編集できる状態に！
+            editor.focus(); // フォーカスを与えて編集可能にする
           } else {
             editor.setValue('// フォルダが選ばれました');
             editor.updateOptions({ readOnly: true });
