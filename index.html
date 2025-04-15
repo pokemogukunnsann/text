@@ -44,7 +44,20 @@
     <button onclick="deleteSelectedFolder()">📂 フォルダ削除</button>
     <button onclick="saveCurrentFile()">💾 保存</button>
   </div>
+<div style="display: flex;">
+  <!-- 左側: ファイル・フォルダツリー -->
+  <div id="fileTree" style="width: 200px; border-right: 1px solid #ccc; padding: 10px; overflow-y: auto; height: 400px;">
+    <strong>ファイル一覧</strong>
+    <ul id="fileList" style="list-style-type: none; padding-left: 10px;"></ul>
+  </div>
 
+  <!-- 右側: コマンド実行など -->
+  <div style="flex: 1; padding: 10px;">
+    <h3>現在のディレクトリ: <span id="currentDir">（未取得）</span></h3>
+    <input type="text" id="cmdInput" placeholder="コマンドを入力..." style="width: 100%;">
+    <pre id="cmdOutput" style="background: #000; color: #0f0; padding: 10px; height: 200px; overflow-y: auto;"></pre>
+  </div>
+</div>
   <div id="main">
     <div id="tree"></div>
     <div id="container"></div>
@@ -208,20 +221,6 @@
       });
     });
   </script>
-  <div style="display: flex;">
-  <!-- 左側: ファイル・フォルダツリー -->
-  <div id="fileTree" style="width: 200px; border-right: 1px solid #ccc; padding: 10px; overflow-y: auto; height: 400px;">
-    <strong>ファイル一覧</strong>
-    <ul id="fileList" style="list-style-type: none; padding-left: 10px;"></ul>
-  </div>
-
-  <!-- 右側: コマンド実行など -->
-  <div style="flex: 1; padding: 10px;">
-    <h3>現在のディレクトリ: <span id="currentDir">（未取得）</span></h3>
-    <input type="text" id="cmdInput" placeholder="コマンドを入力..." style="width: 100%;">
-    <pre id="cmdOutput" style="background: #000; color: #0f0; padding: 10px; height: 200px; overflow-y: auto;"></pre>
-  </div>
-</div>
 
 <script>
   const cmdInput = document.getElementById("cmdInput");
